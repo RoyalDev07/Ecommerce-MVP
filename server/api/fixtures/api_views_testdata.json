@@ -1,0 +1,183 @@
+[
+{
+    "model": "api.customuser",
+    "pk": 1,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "admin",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$oi814NofHxUY$r/2dd02o/992e7ld84AQDIavRumnstH1dOeyXUsX8eQ=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 2,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "asdf",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$oi814NofHxUY$r/2dd02o/992e7ld84AQDIavRumnstH1dOeyXUsX8eQ=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 3,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "modifiedUser1",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$KSbF0lTO4XT9$1k6F1CBb0x0uFvP775uECh0VLTsYGHCdnIuMDObzPm0=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 5,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "user3",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$KjSVY1jcqJgY$6rlf4R9tu10Prt8ZRCMJXZLQE41y5BVKIwgakI/Tp4o=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 6,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "user4",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$HntiyiFC4NAQ$awy5jtopeSgzN5usQP3D9CJmpxLlUVCQt/twhjpuGwQ=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 7,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "User5",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$jswBSLo1DlHl$sPkYyDFfdAeqPkbxiOWmmexmHDZtk0qDMiBamZ9TExI=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.customuser",
+    "pk": 8,
+    "fields": {
+        "last_login": null,
+        "is_superuser": false,
+        "username": "modifiedUser",
+        "role": "admin",
+        "password": "pbkdf2_sha256$150000$Xdt5co5iON6L$A/alnx7Yo/zf12lsRbiAv5u3GV5BCbep9T0vUKOKFCk=",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 7,
+    "fields": {
+        "date": "2019-11-09",
+        "distance": 45.0,
+        "time": 3,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 8,
+    "fields": {
+        "date": "1988-01-05",
+        "distance": 45.0,
+        "time": 5,
+        "user": 2
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 9,
+    "fields": {
+        "date": "2009-01-01",
+        "distance": 45.0,
+        "time": 5,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 10,
+    "fields": {
+        "date": "2009-01-01",
+        "distance": 45.0,
+        "time": 5,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 12,
+    "fields": {
+        "date": "2019-04-15",
+        "distance": 45.0,
+        "time": 5,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 13,
+    "fields": {
+        "date": "2019-04-15",
+        "distance": 45.0,
+        "time": 5,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 15,
+    "fields": {
+        "date": "2009-01-01",
+        "distance": 45.0,
+        "time": 10,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 17,
+    "fields": {
+        "date": "2019-11-20",
+        "distance": 100.0,
+        "time": 4,
+        "user": 1
+    }
+},
+{
+    "model": "api.entry",
+    "pk": 18,
+    "fields": {
+        "date": "2019-11-19",
+        "distance": 40.0,
+        "time": 3,
+        "user": 1
+    }
+}
+]

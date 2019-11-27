@@ -1,2 +1,2 @@
 Server:Django GraphQL
-Client:React Apollo Client
+Client:React Apollo Clientgit add README.md

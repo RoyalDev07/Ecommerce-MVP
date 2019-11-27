@@ -12,6 +12,7 @@ graphene-django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 django-filter = "*"
+django-graphql-jwt = "*"
 
 [requires]
 python_version = "3.7"

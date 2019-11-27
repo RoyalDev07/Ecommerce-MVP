@@ -11,14 +11,27 @@ import Icon from "@material-ui/core/Icon";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import DescriptionRoundedIcon from "@material-ui/icons/DescriptionRounded";
-import { createStructuredSelector } from "reselect";
-import { connect } from "react-redux";
-import { compose } from "redux";
 import { withApollo } from "@apollo/react-hoc";
-
-import { getCurrentUser, isLoggedIn } from "../../redux/auth/selector";
-
+import { useMutation, useQuery, useLazyQuery } from "@apollo/react-hooks";
+import {
+  CREATE_ENTRY,
+  UPDATE_ENTRY,
+  DELETE_ENTRY
+} from "../../grqphql/mutation";
+import { FILTER_ENTRY, CURRENT_USER, WEEKLY_REPORT } from "../../grqphql/query";
+import gql from "graphql-tag";
 import _ from "lodash";
+// import { createStructuredSelector } from "reselect";
+// import { connect } from "react-redux";
+// import { compose } from "redux";
+
+// import { getCurrentUser, isLoggedIn } from "../../redux/auth/selector";
+const query = gql`
+  query currentUser {
+    username
+    role
+  }
+`;
 const useStyles = makeStyles(theme => ({
   "@global": {
     body: {
@@ -78,50 +91,86 @@ function getIndex(array, value) {
 }
 
 function EntryList({ client }) {
-  console.log(client);
-  let currentUser = {};
   const classes = useStyles();
   const [columns, setColumns] = useState([]);
-
   const [data, setData] = useState([]);
 
-  const addEntry = async newData => {
-    //newData.user: auth.user.username
-    if (currentUser.role === "user") newData.user = currentUser.username;
-    let user = await axios.post(API_URL + "get_user_id/", {
-      username: newData.user
-    });
-    let tempData = { ...newData };
-    tempData.user = user.data.user;
-    console.log(tempData.user);
-    if (!tempData.user) {
-      window.alert("You input invalid user!");
-      return;
+  const { currentUser } = client.readQuery({
+    query: gql`
+      query {
+        currentUser @client {
+          username
+          role
+        }
+      }
+    `
+  });
+  if (!!currentUser) {
+    let role = currentUser.role;
+    if (role === "USER") {
+      if (!columns.length)
+        setColumns([
+          { title: "Date", field: "date" },
+          { title: "Distance", field: "distance", type: "numeric" },
+          { title: "Time", field: "time", type: "numeric" }
+        ]);
+    } else if (role === "ADMIN") {
+      if (!columns.length) {
+        console.log("Need change in Columns");
+        setColumns([
+          { title: "Username", field: "user" },
+          { title: "Date", field: "date" },
+          { title: "Distance", field: "distance", type: "numeric" },
+          { title: "Time", field: "time", type: "numeric" }
+        ]);
+      }
     }
-    return new Promise((resolve, reject) => {
-      axios
-        .post(API_URL + "entry/", {
-          ...tempData
-        })
-        .then(function(response) {
-          const data1 = [...data];
-          data1.push(newData);
-          console.log(data1);
-          setData(data1);
-          resolve();
-        })
-        .catch(function(error) {
-          reject();
-        });
+  }
+  const [getEntries, entryOptions] = useLazyQuery(FILTER_ENTRY, {
+    fetchPolicy: "no-cache",
+    onCompleted: response => {
+      let data1 = { ...response.allEntries.edges };
+      let keys = Object.keys(data1);
+      let tempData = keys.map((key, index) => {
+        let temp = { ...data1[key].node };
+        temp.user = temp.user.username;
+        return temp;
+      });
+      console.log(tempData);
+      setData(tempData);
+    }
+  });
+  useEffect(() => {
+    getEntries();
+    weeklyReport();
+  }, []);
+  const [weeklyReport, weeklyReportOptions] = useLazyQuery(WEEKLY_REPORT, {
+    onCompleted: response => {}
+  });
+  const [updateEntry] = useMutation(UPDATE_ENTRY);
+  const [addEntry] = useMutation(CREATE_ENTRY);
+  const [deleteEntry] = useMutation(DELETE_ENTRY);
+
+  const handleClickAddEntry = async newData => {
+    let tempData = { ...newData };
+    //    const currentUser = client.readQuery({ query });
+    //  if (currentUser.role == "user") tempData.user = currentUser.username;
+    addEntry({ variables: tempData }).then(function(response) {
+      let data1 = [...data];
+      data1.push(newData);
+      setData(data1);
     });
   };
 
-  const removeEntry = async oldData => {
+  const handleClickDeleteEntry = async oldData => {
     return new Promise((resolve, reject) => {
-      axios
-        .delete(`${API_URL}entry/${oldData.id}/`)
+      deleteEntry({
+        variables: {
+          id: oldData.pk
+        }
+      })
         .then(function(response) {
-          let data1 = [...data];
+          const data1 = [...data];
           const index = getIndex(data1, oldData);
           data1.splice(index, 1);
           setData(data1);
@@ -133,12 +182,17 @@ function EntryList({ client }) {
     });
   };
 
-  const updateEntry = (newData, oldData) => {
+  const handleClickUpdateEntry = (newData, oldData) => {
     const data1 = [...data];
     const index = getIndex(data1, oldData);
     return new Promise((resolve, reject) => {
-      axios
-        .put(`${API_URL}entry/${oldData.id}/`, newData)
+      console.log(oldData);
+      updateEntry({
+        variables: {
+          ...newData,
+          id: oldData.pk
+        }
+      })
         .then(function(response) {
           data1[index] = newData;
           setData(data1);
@@ -150,72 +204,37 @@ function EntryList({ client }) {
     });
   };
 
-  useEffect(() => {
-    let role = currentUser.role;
-    console.log(role);
-    if (role === "user") {
-      if (!columns.length)
-        setColumns([
-          { title: "Date", field: "date" },
-          { title: "Distance", field: "distance", type: "numeric" },
-          { title: "Time", field: "time", type: "numeric" }
-        ]);
-    } else if (role === "admin") {
-      if (!columns.length)
-        setColumns([
-          { title: "Username", field: "user" },
-          { title: "Date", field: "date" },
-          { title: "Distance", field: "distance", type: "numeric" },
-          { title: "Time", field: "time", type: "numeric" }
-        ]);
-    }
-
-    //Get Entry Data
-
-    if (!!role)
-      axios
-        .get(`${API_URL}entry/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        })
-        .then(function(response) {
-          if (!_.isEqual(data, response.data)) setData(response.data);
-        })
-        .catch(function(error) {});
-  }, [currentUser, columns.length, data]);
-
   const onFilterSubmit = values => {
-    let startDate = !!values.startDate ? `from_date=${values.startDate}&` : "",
-      endDate = !!values.endDate ? `to_date=${values.endDate}` : "";
-    axios
-      .get(`${API_URL}entry/?${startDate}${endDate}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-      .then(function(response) {
-        setData(response.data);
+    let tempData = { ...values };
+    if (tempData.fromDate == "") tempData.fromDate = undefined;
+    if (tempData.toDate == "") tempData.toDate = undefined;
+    entryOptions.refetch({ ...tempData }).then(function(response) {
+      let data1 = { ...response.data.allEntries.edges };
+      let keys = Object.keys(data1);
+      let tempData = keys.map((key, index) => {
+        let temp = { ...data1[key].node };
+        temp.user = temp.user.username;
+        return temp;
       });
+      console.log(tempData);
+      setData(tempData);
+    });
   };
 
   const getWeeklyReport = () => {
-    axios
-      .get(`${API_URL}entry/weekly_report/`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-      .then(function(response) {
-        let { total_distance, total_time } = response.data,
-          avg_speed = 0;
-        if (!total_distance) total_distance = 0;
-        if (!total_time) total_time = 0;
-        if (total_time > 0) avg_speed = total_distance / total_time;
-        window.alert(
-          `Total Distance: ${total_distance}, Total Time: ${total_time}, Avg Speed: ${avg_speed}`
-        );
-      });
+    console.log(weeklyReportOptions.refetch);
+    weeklyReportOptions.refetch().then(function(response) {
+      console.log(response);
+      let { totalDistance, totalTime } = response.data.weeklyReport;
+      let avg_speed = 0;
+      console.log(totalDistance, totalTime);
+      if (!totalDistance) totalDistance = 0;
+      if (!totalTime) totalTime = 0;
+      if (totalTime > 0) avg_speed = totalDistance / totalTime;
+      window.alert(
+        `Total Distance: ${totalDistance}, Total Time: ${totalTime}, Avg Speed: ${avg_speed}`
+      );
+    });
   };
   return (
     <div className={classes.root} style={{ marginTop: "20px" }}>
@@ -236,12 +255,12 @@ function EntryList({ client }) {
           <Paper className={classes.container}>
             <Formik
               initialValues={{
-                startDate: "",
-                endDate: ""
+                fromDate: "",
+                toDate: ""
               }}
               validationSchema={Yup.object().shape({
-                startDate: Yup.date(),
-                endDate: Yup.date()
+                fromDate: Yup.date(),
+                toDate: Yup.date()
               })}
               onSubmit={onFilterSubmit}
               render={formProps => {
@@ -253,16 +272,14 @@ function EntryList({ client }) {
                         shrink: true
                       }}
                       type="date"
-                      name="startDate"
+                      name="fromDate"
                       className={classes.textField}
                       label="Start Date"
                       margin="normal"
-                      value={values.startDate}
+                      value={values.fromDate}
                       onChange={handleChange}
                       helperText={
-                        errors.startDate &&
-                        touched.startDate &&
-                        errors.startDate
+                        errors.fromDate && touched.fromDate && errors.fromDate
                       }
                     />
                     <TextField
@@ -270,14 +287,14 @@ function EntryList({ client }) {
                         shrink: true
                       }}
                       type="date"
-                      name="endDate"
+                      name="toDate"
                       className={classes.textField}
                       label="End Date"
                       margin="normal"
-                      value={values.endDate}
+                      value={values.toDate}
                       onChange={handleChange}
                       helperText={
-                        errors.endDate && touched.endDate && errors.endDate
+                        errors.toDate && touched.toDate && errors.toDate
                       }
                     />
                     <div className={classes.rightAlignContainer}>
@@ -303,9 +320,9 @@ function EntryList({ client }) {
             columns={columns}
             data={data}
             editable={{
-              onRowAdd: addEntry,
-              onRowUpdate: updateEntry,
-              onRowDelete: removeEntry
+              onRowAdd: handleClickAddEntry,
+              onRowUpdate: handleClickUpdateEntry,
+              onRowDelete: handleClickDeleteEntry
             }}
             options={{
               search: false
