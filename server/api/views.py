@@ -60,7 +60,7 @@ class EntryViewSet(viewsets.ModelViewSet):
             weekNumber = date.today().isocalendar()[1]
 
         queryset = queryset.filter(date__week=weekNumber)
-        print (queryset)
+        print (queryset)    
 
         report_data = queryset.aggregate(total_distance=Sum('distance'), total_time=Sum('time'))
         

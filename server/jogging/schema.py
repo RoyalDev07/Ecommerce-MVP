@@ -2,8 +2,7 @@ import graphene
 import graphql_jwt
 
 import api.schema
-from api.schema import CreateUser 
-
+from api.schema import CreateUser, CreateEntry, DeleteEntry, DeleteUser
 
 class Query(api.schema.Query, graphene.ObjectType):
     
@@ -16,5 +15,7 @@ class Mutation(graphene.ObjectType):
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
     create_user = CreateUser.Field()
+    create_entry = CreateEntry.Field()
+    delete_entry = DeleteEntry.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

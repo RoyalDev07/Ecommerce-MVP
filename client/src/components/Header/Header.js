@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -10,16 +10,20 @@ import { ThemeProvider } from "@material-ui/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
 import purple from "@material-ui/core/colors/purple";
 import blue from "@material-ui/core/colors/blue";
-import { API_URL } from "../../constants";
-import axios from "axios";
-import { createStructuredSelector } from "reselect";
-import { connect } from "react-redux";
-import { compose } from "redux";
-import { getCurrentUser, isLoggedIn } from "../../redux/auth/selector";
-import { signIn } from "../../redux/auth/actions";
+import { useQuery } from "@apollo/react-hooks";
+import { withApollo } from "@apollo/react-hoc";
+
+// import { createStructuredSelector } from "reselect";
+// import { connect } from "react-redux";
+// import { compose } from "redux";
+// import { getCurrentUser, isLoggedIn } from "../../redux/auth/selector";
+//import { signIn } from "../../redux/auth/actions";
+import { CURRENT_USER, CURRENT_USER1 } from "../../grqphql/query";
 import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import AccountCircle from "@material-ui/icons/AccountCircle";
+import gql from "graphql-tag";
+
 const theme = createMuiTheme({
   palette: {
     primary: purple,
@@ -38,15 +42,25 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1
   }
 }));
-
-export default function Header() {
-  let currentUser = {};
+function Header({ client }) {
   const classes = useStyles();
   const token = localStorage.getItem("token");
+  const { data, refetch } = useQuery(CURRENT_USER1, {
+    variables: {},
+    onCompleted: ({ currentUser }) => {
+      client.writeData({
+        data: {
+          currentUser
+        }
+      });
+    }
+  });
+  refetch();
+  useEffect(() => {
+    //    currentUser();
+  }, [token]);
 
-  const [isLoggedIn] = useState(!!token);
-  const role = currentUser.role;
-
+  /* Menu Settings */
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -55,21 +69,6 @@ export default function Header() {
     window.location.href = "/signin";
   };
 
-  useEffect(() => {
-    if (
-      !!localStorage.getItem("token") &&
-      Object.keys(currentUser).length === 0
-    )
-      axios
-        .get(API_URL + "get_user/", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
-        })
-        .then(function(response) {
-          signIn(response.data.user);
-        });
-  });
   const handleMenu = event => {
     setAnchorEl(event.currentTarget);
   };
@@ -96,17 +95,17 @@ export default function Header() {
             <Typography variant="h6" className={classes.title}>
               Jogging Track
             </Typography>
-            {(role === "user" || role === "admin") && (
+            {(data.currentUser.role === "user" || data.currentUser.role === "admin") && (
               <Button color="inherit" onClick={signOut}>
                 Entry
               </Button>
             )}
-            {role === "manager" && (
+            {data.currentUser.role === "manager" && (
               <Button color="inherit" onClick={goToUserPage}>
                 Users
               </Button>
             )}
-            {isLoggedIn && (
+            {
               <>
                 <IconButton
                   aria-label="account of current user"
@@ -116,7 +115,7 @@ export default function Header() {
                   color="inherit"
                 >
                   <AccountCircle />
-                  {currentUser.username}
+                  {data.currentUser.username}
                 </IconButton>
                 <Menu
                   id="menu-appbar"
@@ -137,13 +136,16 @@ export default function Header() {
                   <MenuItem onClick={handleClose}>My account</MenuItem>
                 </Menu>
               </>
-            )}
+            }
           </Toolbar>
         </AppBar>
       </div>
     </ThemeProvider>
   );
 }
+
+export default withApollo(Header);
+
 // const mapStateToProps = createStructuredSelector({
 //   currentUser: getCurrentUser(),
 //   isLoggedIn: isLoggedIn()

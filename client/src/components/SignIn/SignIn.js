@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -12,12 +12,10 @@ import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
-import { useLazyQuery, useMutation } from "@apollo/react-hooks";
+import { useMutation } from "@apollo/react-hooks";
 import { withApollo } from "@apollo/react-hoc";
 
 import { GET_TOKEN } from "../../grqphql/mutation";
-import { API_URL } from "../../constants";
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
@@ -61,7 +59,7 @@ function SignIn({ client }) {
 
   console.log(client);
 
-  const [getToken, { data }] = useMutation(GET_TOKEN, {
+  const [getToken] = useMutation(GET_TOKEN, {
     onCompleted({ tokenAuth: { token } }) {
       console.log(token);
       localStorage.setItem("token", token);
